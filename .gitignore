@@ -1,0 +1,8 @@
+dist/
+artifacts/
+*.log
+*.jsonl
+*.zip
+*.exe
+*.dll
+settings.json
