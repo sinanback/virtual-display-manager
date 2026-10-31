@@ -76,7 +76,7 @@ def render(key, lang, title, description, heading, body, *, home=False):
     foot = ('Açıkça belirtilen sistemlerde denenmesi gereken bir ön sürümdür. Her uzak erişim aracıyla uyumluluk garantisi verilmez.'
             if tr else 'Public preview. Verify it with your hardware and remote-access software; compatibility is not guaranteed.')
     html = f'''<!doctype html>
-<html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="{lang}"><head><meta charset="utf-8"><meta name="google-site-verification" content="GTbShs8GZY4VhBnX5NeE3VAkS19RFsAqSMqlHfDTfgc"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{escape(title)}</title><meta name="description" content="{escape(description)}">
 <meta name="robots" content="index,follow,max-image-preview:large"><meta name="theme-color" content="#14253c">
 <link rel="canonical" href="{canonical}">{alternate}<link rel="alternate" hreflang="x-default" href="{url(PAGES[key][0])}">
