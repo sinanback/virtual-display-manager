@@ -8,7 +8,7 @@
 
 `Windows 10/11 x64` · `PowerShell 5.1` · `Türkçe / English` · `2.0.0 public preview`
 
-[Türkçe](#turkce) · [English](#english) · [İndir / Download](https://github.com/sinanback/virtual-display-manager/releases) · [Kaynak / Source](src/)
+[Web sitesi / Website](https://sinanback.github.io/virtual-display-manager/) · [Türkçe](#turkce) · [English](#english) · [İndir / Download](https://github.com/sinanback/virtual-display-manager/releases) · [Kaynak / Source](src/)
 
 **[Hazır tek dosyalı CMD indir / Download ready-to-run CMD](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.0-preview.1/Virtual-Display-Manager-Portable.cmd)**
 
