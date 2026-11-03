@@ -1,8 +1,11 @@
 # Changelog
 
-## 2.0.0
+## 2.0.1
 
 ### Türkçe
+
+- Aktif ekran bağlantıları Windows DisplayConfig API’sinden okunur; WMI yedek algılama yöntemi olarak kullanılır. Monitörsüz cihazlarda sanal ekran adaptör kimliğiyle ayırt edilir.
+- Dahili paneller ve USB monitörleri için fiziksel ekran algılama, değişen bağlantı topolojisinde yeniden deneme ve belirsiz durumda mevcut aygıtı koruma.
 
 - Kalıcı Türkçe/İngilizce dil seçimi; arayüz, uyarılar, simge menüsü ve kullanıcı kılavuzu için eşleşen çeviriler.
 - Genel bakış, cihaz işlemleri ve kullanıcı kılavuzu sekmeleri.
@@ -14,6 +17,9 @@
 - EXE gerektirmeyen, konsol oluşturmayan CMD başlatıcıları; kaynak derleme betiği, testler ve SHA-256 listesi.
 
 ### English
+
+- Active display paths read through Windows DisplayConfig, with WMI fallback and adapter-identity classification for headless systems.
+- Physical display detection for internal panels and USB monitors, bounded topology retries and state preservation when detection is uncertain.
 
 - Persistent Turkish/English language selection with matching UI, prompts, tray menus and user manuals.
 - Overview, device activity and user guide tabs.

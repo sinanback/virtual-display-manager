@@ -7,7 +7,62 @@ using System;
 using System.Drawing;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 public static class VddHardware {
+    [StructLayout(LayoutKind.Sequential)] struct Luid { public uint Low; public int High; }
+    [StructLayout(LayoutKind.Sequential)] struct Source { public Luid Adapter; public uint Id, Mode, Status; }
+    [StructLayout(LayoutKind.Sequential)] struct Target {
+        public Luid Adapter; public uint Id, Mode; public int Technology;
+        public uint Rotation, Scaling, RefreshNumerator, RefreshDenominator, ScanLine;
+        [MarshalAs(UnmanagedType.Bool)] public bool Available;
+        public uint Status;
+    }
+    [StructLayout(LayoutKind.Sequential)] struct DisplayPath { public Source Source; public Target Target; public uint Flags; }
+    [StructLayout(LayoutKind.Sequential)] struct Header { public uint Type, Size; public Luid Adapter; public uint Id; }
+    [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] struct AdapterName {
+        public Header Header;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string Path;
+    }
+    public sealed class ActiveTarget { public string AdapterId; public int Technology; public bool Available; }
+    [DllImport("user32.dll")] static extern int GetDisplayConfigBufferSizes(uint flags, out uint paths, out uint modes);
+    [DllImport("user32.dll")] static extern int QueryDisplayConfig(uint flags, ref uint paths, [Out] DisplayPath[] pathArray, ref uint modes, IntPtr modeArray, IntPtr topology);
+    [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern int DisplayConfigGetDeviceInfo(ref AdapterName name);
+    static void CheckDisplayResult(int result) {
+        if (result!=0) throw new System.ComponentModel.Win32Exception(result,"Display topology query failed ("+result+").");
+    }
+    public static ActiveTarget[] ActiveTargets() {
+        // QDC_ONLY_ACTIVE_PATHS. WMI monitor classes can fail with NotSupported
+        // precisely when the final physical monitor is unplugged.
+        for (int attempt=0; attempt<5; attempt++) {
+            uint paths, modes;
+            CheckDisplayResult(GetDisplayConfigBufferSizes(2,out paths,out modes));
+            var data=new DisplayPath[Math.Max(1,(int)paths)];
+            IntPtr buffer=Marshal.AllocHGlobal(checked(Math.Max(1,(int)modes)*64));
+            try {
+                int result=QueryDisplayConfig(2,ref paths,data,ref modes,buffer,IntPtr.Zero);
+                if (result==122) continue; // Topology changed between the two calls.
+                CheckDisplayResult(result);
+                var targets=new List<ActiveTarget>();
+                for (int i=0;i<paths;i++) {
+                    var target=data[i].Target;
+                    if (!target.Available) continue; // Forced desktop without a connected monitor.
+                    var name=new AdapterName();
+                    name.Header.Type=4; // DISPLAYCONFIG_DEVICE_INFO_GET_ADAPTER_NAME
+                    name.Header.Size=(uint)Marshal.SizeOf(typeof(AdapterName));
+                    name.Header.Adapter=target.Adapter;
+                    CheckDisplayResult(DisplayConfigGetDeviceInfo(ref name));
+                    string id=name.Path;
+                    if (String.IsNullOrEmpty(id) || !id.StartsWith(@"\\?\")) throw new InvalidOperationException("Missing display adapter path.");
+                    int suffix=id.LastIndexOf("#{",StringComparison.Ordinal);
+                    if (suffix<0) throw new InvalidOperationException("Invalid display adapter path: "+id);
+                    id=id.Substring(4,suffix-4).Replace('#','\\');
+                    targets.Add(new ActiveTarget { AdapterId=id, Technology=target.Technology, Available=true });
+                }
+                return targets.ToArray();
+            } finally { Marshal.FreeHGlobal(buffer); }
+        }
+        throw new InvalidOperationException("Display topology is still changing; retry the query.");
+    }
     [DllImport("cfgmgr32.dll", CharSet=CharSet.Unicode)] static extern uint CM_Locate_DevNodeW(out uint node, string id, uint flags);
     [DllImport("cfgmgr32.dll")] static extern uint CM_Get_Parent(out uint parent, uint node, uint flags);
     [DllImport("cfgmgr32.dll", CharSet=CharSet.Unicode)] static extern uint CM_Get_Device_IDW(uint node, StringBuilder id, uint length, uint flags);
@@ -55,7 +110,33 @@ function Get-DeviceSnapshot {
     try { $count=Get-PhysicalDisplays $device } catch { $detectionError=$_.Exception.Message }
     [pscustomobject]@{Device=$device; Physical=$count; DetectionError=$detectionError; CheckedAt=[datetime]::Now}
 }
+function Get-ActiveDisplayTargets { return [VddHardware]::ActiveTargets() }
 function Get-PhysicalDisplays {
+    param($Device)
+    try {
+        $targets=@(Get-ActiveDisplayTargets)
+        $count=0
+        foreach($target in $targets) {
+            $id=[string]$target.AdapterId
+            # Indirect virtual / Miracast outputs are not physical monitors.
+            if($target.Technology -in @(15,17)) { continue }
+            $resolved=$false; $virtual=$false
+            for($depth=0;$depth -lt 16;$depth++) {
+                if(($Device -and $id -eq $Device.Id) -or $id -like 'ROOT\MTTVDD*') { $resolved=$true; $virtual=$true; break }
+                if($id -like 'PCI\*' -or $id -like 'USB\*') { $resolved=$true; break }
+                $id=[VddHardware]::Parent($id)
+            }
+            if(-not $resolved) { throw 'Display adapter ancestry could not be verified.' }
+            if(-not $virtual) { $count++ }
+        }
+        return $count
+    } catch {
+        $nativeError=$_.Exception.Message
+        try { return Get-WmiPhysicalDisplays $Device }
+        catch { throw ('DisplayConfig: '+$nativeError+'; WMI fallback: '+$_.Exception.Message) }
+    }
+}
+function Get-WmiPhysicalDisplays {
     param($Device)
     $query=New-Object Management.ManagementObjectSearcher('root\wmi','SELECT * FROM WmiMonitorConnectionParams')
     $query.Options.Timeout=[timespan]::FromSeconds(8)
@@ -154,14 +235,7 @@ function Invoke-Backend {
                 $r=Invoke-HiddenTool (Join-Path $env:SystemRoot 'System32\pnputil.exe') ('/remove-device "'+$before.Device.Id+'"')
                 $detail=$r.Detail; $reboot=$r.Reboot
             } else {
-                $device=New-Object Management.ManagementObject($before.Device.Path)
-                try {
-                    $result=$device.InvokeMethod($Action,$null,$null)
-                    $returnCode=[uint32]$result.ReturnValue
-                    $reboot=[bool]$result.rebootNeeded
-                    $result.Dispose()
-                    if ($returnCode -ne 0) { throw ('Windows device method returned '+$returnCode) }
-                } finally { $device.Dispose() }
+                $reboot=Invoke-DeviceStateChange $before.Device $Action
             }
         }
     }
@@ -176,4 +250,15 @@ function Invoke-Backend {
         }
     }
     [pscustomobject]@{Snapshot=$snapshot; Detail=$detail; Reboot=$reboot; Verified=$verified; Skipped=$skipped}
+}
+function Invoke-DeviceStateChange {
+    param($Device,[string]$Action)
+    $instance=New-Object Management.ManagementObject($Device.Path)
+    try {
+        $result=$instance.InvokeMethod($Action,$null,$null)
+        try {
+            if([uint32]$result.ReturnValue -ne 0) { throw ('Windows device method returned '+$result.ReturnValue) }
+            return [bool]$result.rebootNeeded
+        } finally { if($result) { $result.Dispose() } }
+    } finally { $instance.Dispose() }
 }

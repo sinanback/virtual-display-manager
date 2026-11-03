@@ -15,3 +15,14 @@ Verified using Windows PowerShell 5.1 on the development computer. No display-de
 
 Not verified here: physical cable attach/detach, actual device enable/disable, installation, removal, reboot handling, other computers/Windows terminal configurations, all DPI scales, and third-party redistribution eligibility. Complete RELEASE_CHECKLIST.md before publishing a public release.
 
+
+## Automatic-switching verification · 2026-11-03
+
+DisplayConfig is the primary detector, with device-identity classification and bounded retries for topology changes. Successful empty native topology is a valid zero, independent of WMI support. Failure of both detectors remains an unknown state, never a zero.
+
+- Windows PowerShell 5.1 live read-only query: one active VDD adapter (`ROOT\DISPLAY\0000`), zero physical monitors, no detection error.
+- `tests/verify-detection.ps1`: 14 assertions passed, including empty topology with unsupported WMI, HDMI-reporting VDD exclusion, GPU/USB/internal displays, fallback, dual failures, attach/detach and connection changes immediately before mutation. Mutations were simulated.
+- Existing UI/background-policy/lifecycle suite: passed; first render 1.5 seconds and initial read-only query 0.5 seconds in this run.
+- Icon fidelity and exact portable bootstrap/ZIP offset/no-console checks: passed.
+
+Actual physical cable manipulation and automatic device disable/enable were not performed during this verification run, to avoid interrupting the current headless remote desktop. Existing installation/removal/reboot and cross-device limitations above still apply.
