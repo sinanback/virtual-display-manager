@@ -6,11 +6,11 @@
 **Sanal ekran adaptörü takmadan, monitörsüz bilgisayarınıza uzaktan erişin.**  
 **Remote access to a headless Windows PC without a physical HDMI dummy plug — using a software virtual monitor.**
 
-`Windows 10/11 x64` · `PowerShell 5.1` · `Türkçe / English` · `2.0.1 public preview`
+`Windows 10/11 x64` · `PowerShell 5.1` · `Türkçe / English` · `2.0.2 public preview`
 
 [Web sitesi / Website](https://sinanback.github.io/virtual-display-manager/) · [Türkçe](#turkce) · [English](#english) · [İndir / Download](https://github.com/sinanback/virtual-display-manager/releases) · [Kaynak / Source](src/)
 
-**[Hazır tek dosyalı CMD indir / Download ready-to-run CMD](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.1-preview.1/Virtual-Display-Manager-Portable.cmd)**
+**[Hazır tek dosyalı CMD indir / Download ready-to-run CMD](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.2-preview.1/Virtual-Display-Manager-Portable.cmd)**
 
 <a id="turkce"></a>
 ## Türkçe
@@ -58,7 +58,7 @@ Bu depo uygulamanın yeniden üretilebilir PowerShell kaynaklarını içerir. Vi
 - Arayüzü bekletmeyen arka plan aygıt sorguları; kalıcı Terminal penceresi oluşturmayan CMD başlatıcısı.
 
 ### İndirme ve kullanım
-1. **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.1-preview.1/Virtual-Display-Manager-Portable.cmd)** dosyasını indirin. Windows 10/11 x64, Windows PowerShell 5.1 ve .NET Framework gerekir.
+1. **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.2-preview.1/Virtual-Display-Manager-Portable.cmd)** dosyasını indirin. Windows 10/11 x64, Windows PowerShell 5.1 ve .NET Framework gerekir.
 2. CMD dosyasını kalıcı bir klasöre koyun. Yanına PS1 veya başka bir dosya eklemeniz gerekmez.
 3. **Virtual-Display-Manager-Portable.cmd** dosyasını çift tıklayarak açın.
 4. Windows yönetici iznini onaylayın. VDD kurulu değilse uygulamadaki **Sürücüyü kur** düğmesini kullanın. Kurulum bileşenleri CMD içinde hazırdır.
@@ -158,7 +158,7 @@ The repository contains rebuildable PowerShell application sources. The actual d
 - Reusable background runspace for hardware queries and a CMD launcher without a persistent Terminal window.
 
 ### Download and use
-1. Download **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.1-preview.1/Virtual-Display-Manager-Portable.cmd)**. Requires Windows 10/11 x64, Windows PowerShell 5.1 and .NET Framework.
+1. Download **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.2-preview.1/Virtual-Display-Manager-Portable.cmd)**. Requires Windows 10/11 x64, Windows PowerShell 5.1 and .NET Framework.
 2. Save the CMD in a permanent folder. No separate PS1 or companion file is needed.
 3. Double-click **Virtual-Display-Manager-Portable.cmd**.
 4. Approve the administrator prompt. If VDD is not installed, choose **Install driver**. The offline installation components are included in the CMD.

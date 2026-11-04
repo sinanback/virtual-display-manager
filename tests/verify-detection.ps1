@@ -8,10 +8,13 @@ if($live.DetectionError) { throw ('Live read-only detection: '+$live.DetectionEr
 Write-Output ('Live read-only physical count: '+$live.Physical)
 $pathType=[VddHardware].GetNestedType('DisplayPath',[Reflection.BindingFlags]::NonPublic)
 $adapterType=[VddHardware].GetNestedType('AdapterName',[Reflection.BindingFlags]::NonPublic)
-if([Runtime.InteropServices.Marshal]::SizeOf([Activator]::CreateInstance($pathType)) -ne 72 -or [Runtime.InteropServices.Marshal]::SizeOf([Activator]::CreateInstance($adapterType)) -ne 276) {
+$targetType=[VddHardware].GetNestedType('TargetName',[Reflection.BindingFlags]::NonPublic)
+if([Runtime.InteropServices.Marshal]::SizeOf([Activator]::CreateInstance($pathType)) -ne 72 -or [Runtime.InteropServices.Marshal]::SizeOf([Activator]::CreateInstance($adapterType)) -ne 276 -or [Runtime.InteropServices.Marshal]::SizeOf([Activator]::CreateInstance($targetType)) -ne 420) {
     throw 'Unexpected Windows DisplayConfig structure layout.'
 }
 $device=[pscustomobject]@{Id='ROOT\DISPLAY\0000';Enabled=$false;Disabled=$true;Code=22}
+$script:present=@('DISPLAY\TEST\ONE'); $script:presenceFails=$false
+function Get-PresentMonitorIds { if($script:presenceFails){throw 'Present monitor query failed'}; return $script:present }
 $script:targets=@(); $script:nativeFails=$false; $script:wmiFails=$true; $script:wmiCount=2; $script:wmiCalls=0
 function Get-ActiveDisplayTargets {
     if($script:nativeFails) { throw 'Native display query unavailable' }
@@ -25,14 +28,26 @@ function Get-WmiPhysicalDisplays {
 }
 Assert ((Get-PhysicalDisplays $device) -eq 0) 'Headless native topology stays zero when WMI would throw Not supported'
 Assert ($script:wmiCalls -eq 0) 'Successful empty native topology does not depend on WMI'
-$script:targets=@([pscustomobject]@{AdapterId=$device.Id;Technology=5})
+$script:targets=@([pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId=$device.Id;Technology=5})
 Assert ((Get-PhysicalDisplays $device) -eq 0) 'VDD reporting HDMI technology is not counted as a physical monitor'
-$script:targets+=@([pscustomobject]@{AdapterId='PCI\TEST_GPU';Technology=5},[pscustomobject]@{AdapterId='USB\TEST_DISPLAY';Technology=16})
+$script:targets+=@([pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId='PCI\TEST_GPU';Technology=5},[pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId='USB\TEST_DISPLAY';Technology=16})
 Assert ((Get-PhysicalDisplays $device) -eq 2) 'Physical GPU and USB monitors count while VDD is active'
-$script:targets=@([pscustomobject]@{AdapterId='PCI\TEST_GPU';Technology=-2147483648})
+$script:targets=@([pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId='PCI\TEST_GPU';Technology=-2147483648})
 Assert ((Get-PhysicalDisplays $device) -eq 1) 'Internal laptop panel is physical'
-$script:targets=@([pscustomobject]@{AdapterId='ROOT\REMOTE';Technology=17},[pscustomobject]@{AdapterId='ROOT\WIRELESS';Technology=15})
+$script:targets=@([pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId='ROOT\REMOTE';Technology=17},[pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId='ROOT\WIRELESS';Technology=15})
 Assert ((Get-PhysicalDisplays $device) -eq 0) 'Indirect virtual and Miracast displays do not block headless activation'
+$script:targets=@([pscustomobject]@{MonitorId='DISPLAY\TEST\ONE';AdapterId='PCI\TEST_GPU';Technology=10})
+$script:present=@()
+Assert ((Get-PhysicalDisplays $device) -eq 0) 'Cached active DisplayPort path without present monitors cannot disable VDD'
+$script:present=@('DISPLAY\VDD\ONE')
+Assert ((Get-PhysicalDisplays $device) -eq 0) 'Present virtual monitor cannot validate a stale physical path'
+$script:present=@('DISPLAY\TEST\ONE')
+$script:targets+=@([pscustomobject]@{MonitorId='DISPLAY\OLD\TWO';AdapterId='PCI\TEST_GPU';Technology=10})
+Assert ((Get-PhysicalDisplays $device) -eq 1) 'Only the exact present monitor counts when a second path is stale'
+$script:presenceFails=$true; $failed=$false
+try { Get-PhysicalDisplays $device | Out-Null } catch { $failed=$true }
+Assert $failed 'Presence query failure is unknown, never an empty connected-monitor list'
+$script:presenceFails=$false
 $script:nativeFails=$true; $script:wmiFails=$false
 Assert ((Get-PhysicalDisplays $device) -eq 2) 'Legacy WMI fallback works when native API is unavailable'
 $script:wmiFails=$true; $failed=$false

@@ -1,8 +1,10 @@
 # Changelog
 
-## 2.0.1
+## 2.0.2
 
 ### Türkçe
+
+- Ekran bağlantıları, o anda mevcut monitörlerin tam PnP aygıt kimlikleriyle doğrulanır; önbellekte kalan DisplayPort/HDMI yolları fiziksel monitör sayılmaz.
 
 - Aktif ekran bağlantıları Windows DisplayConfig API’sinden okunur; WMI yedek algılama yöntemi olarak kullanılır. Monitörsüz cihazlarda sanal ekran adaptör kimliğiyle ayırt edilir.
 - Dahili paneller ve USB monitörleri için fiziksel ekran algılama, değişen bağlantı topolojisinde yeniden deneme ve belirsiz durumda mevcut aygıtı koruma.
@@ -17,6 +19,8 @@
 - EXE gerektirmeyen, konsol oluşturmayan CMD başlatıcıları; kaynak derleme betiği, testler ve SHA-256 listesi.
 
 ### English
+
+- Display paths are matched to exact currently present monitor instance IDs; cached DisplayPort/HDMI paths do not count as physical monitors.
 
 - Active display paths read through Windows DisplayConfig, with WMI fallback and adapter-identity classification for headless systems.
 - Physical display detection for internal panels and USB monitors, bounded topology retries and state preservation when detection is uncertain.

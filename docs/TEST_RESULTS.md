@@ -26,3 +26,11 @@ DisplayConfig is the primary detector, with device-identity classification and b
 - Icon fidelity and exact portable bootstrap/ZIP offset/no-console checks: passed.
 
 Actual physical cable manipulation and automatic device disable/enable were not performed during this verification run, to avoid interrupting the current headless remote desktop. Existing installation/removal/reboot and cross-device limitations above still apply.
+## Display-presence verification · 2026-11-04
+
+- Live read-only evidence before recovery: DisplayConfig reported one available DisplayPort path, while a successful present-monitor PnP query returned zero monitors. The disabled VDD had device code 22.
+- Active paths now require an exact match with a currently present monitor instance. A successful empty presence query means zero monitors; a failed presence query remains unknown. The WMI fallback uses the same presence filter.
+- `tests/verify-detection.ps1`: 18 assertions passed, including cached DisplayPort paths, virtual-only presence, mixed stale/present paths and presence-query failure.
+- UI/background-policy/lifecycle and portable bootstrap checks: passed. First window render approximately 1.5 seconds; initial query approximately 0.5 seconds.
+- The existing VDD was enabled during recovery and Windows reported OK / CM_PROB_NONE. The current application was restarted with automatic monitoring; subsequent live snapshots reported VDD enabled, zero physical monitors and no detection error.
+- Actual physical cable manipulation and automatic hardware enable/disable cycles were not performed in this run. The test suite simulates those mutations.

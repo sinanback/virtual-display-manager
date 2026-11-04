@@ -32,7 +32,7 @@ $launcher=$launcherTemplate.Replace('__ENV__',"set `"VDD_LAUNCHER=%~f0`"`r`nset 
 [IO.File]::WriteAllText((Join-Path $OutputDirectory 'Virtual-Display-Manager.cmd'),$launcher,[Text.Encoding]::ASCII)
 $readme=Join-Path $OutputDirectory 'README.txt'
 [IO.File]::WriteAllText($readme,[IO.File]::ReadAllText((Join-Path $root 'README.md')),$utf8)
-Compress-Archive -LiteralPath @($appPath,(Join-Path $OutputDirectory 'Virtual-Display-Manager.cmd'),$readme) -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.1-scripts.zip') -Force
+Compress-Archive -LiteralPath @($appPath,(Join-Path $OutputDirectory 'Virtual-Display-Manager.cmd'),$readme) -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.2-scripts.zip') -Force
 if(Test-Path -LiteralPath $DriverBundle){
     # Read only the application prefix at startup. Driver bytes are streamed out
     # by the worker only after the user confirms Install driver.
@@ -49,7 +49,7 @@ try{$f=[IO.File]::OpenRead($env:VDD_EMBEDDED_CMD);try{$b=New-Object byte[] 13107
         $input=[IO.File]::OpenRead($DriverBundle)
         try{$input.CopyTo($output)}finally{$input.Dispose()}
     }finally{$output.Dispose()}
-    Compress-Archive -LiteralPath $target -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.1-windows-x64.zip') -Force
+    Compress-Archive -LiteralPath $target -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.2-windows-x64.zip') -Force
 }
 $artifacts=Get-ChildItem -LiteralPath $OutputDirectory -File | Where-Object {$_.Name -like 'Virtual-Display-Manager*'}
 $hashes=$artifacts|Get-FileHash -Algorithm SHA256|ForEach-Object{$_.Hash.ToLowerInvariant()+'  '+[IO.Path]::GetFileName($_.Path)}

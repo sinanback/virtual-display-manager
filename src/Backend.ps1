@@ -23,10 +23,26 @@ public static class VddHardware {
         public Header Header;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string Path;
     }
-    public sealed class ActiveTarget { public string AdapterId; public int Technology; public bool Available; }
+    [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] struct TargetName {
+        public Header Header;
+        public uint Flags; public int Technology;
+        public ushort Manufacturer, Product;
+        public uint Connector;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst=64)] public string FriendlyName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string Path;
+    }
+    public sealed class ActiveTarget { public string AdapterId, MonitorId; public int Technology; public bool Available; }
     [DllImport("user32.dll")] static extern int GetDisplayConfigBufferSizes(uint flags, out uint paths, out uint modes);
     [DllImport("user32.dll")] static extern int QueryDisplayConfig(uint flags, ref uint paths, [Out] DisplayPath[] pathArray, ref uint modes, IntPtr modeArray, IntPtr topology);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern int DisplayConfigGetDeviceInfo(ref AdapterName name);
+    [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern int DisplayConfigGetDeviceInfo(ref TargetName name);
+    static string InstanceId(string path) {
+        if (String.IsNullOrEmpty(path)) return null;
+        if (!path.StartsWith(@"\\?\")) throw new InvalidOperationException("Invalid display device path: "+path);
+        int suffix=path.LastIndexOf("#{",StringComparison.Ordinal);
+        if (suffix<0) throw new InvalidOperationException("Invalid display device path: "+path);
+        return path.Substring(4,suffix-4).Replace('#','\\');
+    }
     static void CheckDisplayResult(int result) {
         if (result!=0) throw new System.ComponentModel.Win32Exception(result,"Display topology query failed ("+result+").");
     }
@@ -51,12 +67,14 @@ public static class VddHardware {
                     name.Header.Size=(uint)Marshal.SizeOf(typeof(AdapterName));
                     name.Header.Adapter=target.Adapter;
                     CheckDisplayResult(DisplayConfigGetDeviceInfo(ref name));
-                    string id=name.Path;
-                    if (String.IsNullOrEmpty(id) || !id.StartsWith(@"\\?\")) throw new InvalidOperationException("Missing display adapter path.");
-                    int suffix=id.LastIndexOf("#{",StringComparison.Ordinal);
-                    if (suffix<0) throw new InvalidOperationException("Invalid display adapter path: "+id);
-                    id=id.Substring(4,suffix-4).Replace('#','\\');
-                    targets.Add(new ActiveTarget { AdapterId=id, Technology=target.Technology, Available=true });
+                    string id=InstanceId(name.Path);
+                    if (String.IsNullOrEmpty(id)) throw new InvalidOperationException("Missing display adapter path.");
+                    var monitor=new TargetName();
+                    monitor.Header.Type=2; // DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME
+                    monitor.Header.Size=(uint)Marshal.SizeOf(typeof(TargetName));
+                    monitor.Header.Adapter=target.Adapter; monitor.Header.Id=target.Id;
+                    CheckDisplayResult(DisplayConfigGetDeviceInfo(ref monitor));
+                    targets.Add(new ActiveTarget { AdapterId=id, MonitorId=InstanceId(monitor.Path), Technology=target.Technology, Available=true });
                 }
                 return targets.ToArray();
             } finally { Marshal.FreeHGlobal(buffer); }
@@ -111,12 +129,33 @@ function Get-DeviceSnapshot {
     [pscustomobject]@{Device=$device; Physical=$count; DetectionError=$detectionError; CheckedAt=[datetime]::Now}
 }
 function Get-ActiveDisplayTargets { return [VddHardware]::ActiveTargets() }
+function Get-PresentMonitorIds {
+    # DisplayConfig can retain an active, available GPU path after unplugging.
+    # Confirm its exact monitor instance is currently present, not just cached.
+    $query=New-Object Management.ManagementObjectSearcher("SELECT PNPDeviceID FROM Win32_PnPEntity WHERE PNPClass='Monitor' AND Present=TRUE")
+    $query.Options.Timeout=[timespan]::FromSeconds(8)
+    try {
+        $items=$query.Get()
+        try {
+            foreach($item in $items) {
+                try {
+                    $id=[string]$item.PNPDeviceID
+                    if(-not $id) { throw 'Present monitor has no device instance ID.' }
+                    $id
+                } finally { $item.Dispose() }
+            }
+        } finally { $items.Dispose() }
+    } finally { $query.Dispose() }
+}
 function Get-PhysicalDisplays {
     param($Device)
+    $present=@(Get-PresentMonitorIds)
+    if($present.Count -eq 0) { return 0 }
     try {
         $targets=@(Get-ActiveDisplayTargets)
         $count=0
         foreach($target in $targets) {
+            if(-not $target.MonitorId -or $target.MonitorId -notin $present) { continue }
             $id=[string]$target.AdapterId
             # Indirect virtual / Miracast outputs are not physical monitors.
             if($target.Technology -in @(15,17)) { continue }
@@ -132,12 +171,12 @@ function Get-PhysicalDisplays {
         return $count
     } catch {
         $nativeError=$_.Exception.Message
-        try { return Get-WmiPhysicalDisplays $Device }
+        try { return Get-WmiPhysicalDisplays $Device $present }
         catch { throw ('DisplayConfig: '+$nativeError+'; WMI fallback: '+$_.Exception.Message) }
     }
 }
 function Get-WmiPhysicalDisplays {
-    param($Device)
+    param($Device,[string[]]$Present)
     $query=New-Object Management.ManagementObjectSearcher('root\wmi','SELECT * FROM WmiMonitorConnectionParams')
     $query.Options.Timeout=[timespan]::FromSeconds(8)
     $count=0
@@ -149,6 +188,7 @@ function Get-WmiPhysicalDisplays {
                     if (-not $item.Active) { continue }
                     if ([uint32]$item.VideoOutputTechnology -notin @(0,1,2,3,4,5,6,8,9,10,11,12,13,15,16,2147483648)) { continue }
                     $id=([string]$item.InstanceName) -replace '_\d+$',''
+                    if($id -notin $Present) { continue }
                     $resolved=$false; $virtual=$false
                     for($depth=0;$depth -lt 16;$depth++) {
                         if (($Device -and $id -eq $Device.Id) -or $id -like 'ROOT\MTTVDD*') { $virtual=$true; $resolved=$true; break }

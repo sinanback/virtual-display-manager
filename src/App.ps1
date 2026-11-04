@@ -148,7 +148,7 @@ $activityTab.Controls.AddRange(@($logHint,$activityList,$activityDetail,$export,
 $guide=New-Object Windows.Forms.TextBox; $guide.SetBounds(18,16,786,445); $guide.Multiline=$true; $guide.ScrollBars='Vertical'; $guide.ReadOnly=$true; $guide.BorderStyle='None'; $guide.BackColor=[Drawing.Color]::White; $guide.Font=New-Object Drawing.Font('Segoe UI',10.5)
 $guideTab.Controls.Add($guide)
 $footer=New-Label '' 27 665 720 24; $footer.ForeColor=[Drawing.Color]::DimGray
-$version=New-Label 'v2.0.1' 773 665 80 24; $version.TextAlign='MiddleRight'; $version.ForeColor=[Drawing.Color]::DimGray
+$version=New-Label 'v2.0.2' 773 665 80 24; $version.TextAlign='MiddleRight'; $version.ForeColor=[Drawing.Color]::DimGray
 $form.Controls.AddRange(@($tabs,$footer,$version))
 $tray=New-Object Windows.Forms.NotifyIcon; $tray.Icon=$script:brandIcon; $tray.Visible=$true
 $menu=New-Object Windows.Forms.ContextMenuStrip
