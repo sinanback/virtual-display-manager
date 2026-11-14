@@ -10,7 +10,8 @@ if(-not $DriverBundle){$DriverBundle=Join-Path (Split-Path $root -Parent) 'work\
 [IO.Directory]::CreateDirectory($OutputDirectory)|Out-Null
 $utf8=New-Object Text.UTF8Encoding($true)
 $app=[IO.File]::ReadAllText((Join-Path $root 'src\App.ps1'))
-$app=$app.Replace('__RESOURCES__',[IO.File]::ReadAllText((Join-Path $root 'src\Resources.ps1'))).Replace('__BACKEND__',[IO.File]::ReadAllText((Join-Path $root 'src\Backend.ps1'))).Replace('__APP_ICON__',[Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $root 'assets\msa-app.ico'))))
+$startup=[IO.File]::ReadAllText((Join-Path $root 'src\Startup.ps1')).Replace('__INSTALLER_B64__',[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([IO.File]::ReadAllText((Join-Path $root 'scripts\install-local-autostart.ps1')))))
+$app=$app.Replace('__RESOURCES__',[IO.File]::ReadAllText((Join-Path $root 'src\Resources.ps1'))).Replace('__BACKEND__',($startup+"`r`n"+[IO.File]::ReadAllText((Join-Path $root 'src\Backend.ps1')))).Replace('__APP_ICON__',[Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $root 'assets\msa-app.ico'))))
 $tokens=$null;$errors=$null
 [Management.Automation.Language.Parser]::ParseInput($app,[ref]$tokens,[ref]$errors)|Out-Null
 if($errors.Count){throw ($errors.Message -join [Environment]::NewLine)}
@@ -32,7 +33,7 @@ $launcher=$launcherTemplate.Replace('__ENV__',"set `"VDD_LAUNCHER=%~f0`"`r`nset 
 [IO.File]::WriteAllText((Join-Path $OutputDirectory 'Virtual-Display-Manager.cmd'),$launcher,[Text.Encoding]::ASCII)
 $readme=Join-Path $OutputDirectory 'README.txt'
 [IO.File]::WriteAllText($readme,[IO.File]::ReadAllText((Join-Path $root 'README.md')),$utf8)
-Compress-Archive -LiteralPath @($appPath,(Join-Path $OutputDirectory 'Virtual-Display-Manager.cmd'),$readme) -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.2-scripts.zip') -Force
+Compress-Archive -LiteralPath @($appPath,(Join-Path $OutputDirectory 'Virtual-Display-Manager.cmd'),$readme) -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.3-scripts.zip') -Force
 if(Test-Path -LiteralPath $DriverBundle){
     # Read only the application prefix at startup. Driver bytes are streamed out
     # by the worker only after the user confirms Install driver.
@@ -49,7 +50,7 @@ try{$f=[IO.File]::OpenRead($env:VDD_EMBEDDED_CMD);try{$b=New-Object byte[] 13107
         $input=[IO.File]::OpenRead($DriverBundle)
         try{$input.CopyTo($output)}finally{$input.Dispose()}
     }finally{$output.Dispose()}
-    Compress-Archive -LiteralPath $target -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.2-windows-x64.zip') -Force
+    Compress-Archive -LiteralPath $target -DestinationPath (Join-Path $OutputDirectory 'Virtual-Display-Manager-v2.0.3-windows-x64.zip') -Force
 }
 $artifacts=Get-ChildItem -LiteralPath $OutputDirectory -File | Where-Object {$_.Name -like 'Virtual-Display-Manager*'}
 $hashes=$artifacts|Get-FileHash -Algorithm SHA256|ForEach-Object{$_.Hash.ToLowerInvariant()+'  '+[IO.Path]::GetFileName($_.Path)}

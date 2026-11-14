@@ -6,11 +6,11 @@
 **Sanal ekran adaptörü takmadan, monitörsüz bilgisayarınıza uzaktan erişin.**  
 **Remote access to a headless Windows PC without a physical HDMI dummy plug — using a software virtual monitor.**
 
-`Windows 10/11 x64` · `PowerShell 5.1` · `Türkçe / English` · `2.0.2 public preview`
+`Windows 10/11 x64` · `PowerShell 5.1` · `Türkçe / English` · `2.0.3 public preview`
 
 [Web sitesi / Website](https://sinanback.github.io/virtual-display-manager/) · [Türkçe](#turkce) · [English](#english) · [İndir / Download](https://github.com/sinanback/virtual-display-manager/releases) · [Kaynak / Source](src/)
 
-**[Hazır tek dosyalı CMD indir / Download ready-to-run CMD](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.2-preview.1/Virtual-Display-Manager-Portable.cmd)**
+**[Hazır tek dosyalı CMD indir / Download ready-to-run CMD](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.3-preview.1/Virtual-Display-Manager-Portable.cmd)**
 
 <a id="turkce"></a>
 ## Türkçe
@@ -58,14 +58,14 @@ Bu depo uygulamanın yeniden üretilebilir PowerShell kaynaklarını içerir. Vi
 - Arayüzü bekletmeyen arka plan aygıt sorguları; kalıcı Terminal penceresi oluşturmayan CMD başlatıcısı.
 
 ### İndirme ve kullanım
-1. **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.2-preview.1/Virtual-Display-Manager-Portable.cmd)** dosyasını indirin. Windows 10/11 x64, Windows PowerShell 5.1 ve .NET Framework gerekir.
+1. **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.3-preview.1/Virtual-Display-Manager-Portable.cmd)** dosyasını indirin. Windows 10/11 x64, Windows PowerShell 5.1 ve .NET Framework gerekir.
 2. CMD dosyasını kalıcı bir klasöre koyun. Yanına PS1 veya başka bir dosya eklemeniz gerekmez.
 3. **Virtual-Display-Manager-Portable.cmd** dosyasını çift tıklayarak açın.
 4. Windows yönetici iznini onaylayın. VDD kurulu değilse uygulamadaki **Sürücüyü kur** düğmesini kullanın. Kurulum bileşenleri CMD içinde hazırdır.
 5. Otomatik kontrol varsayılan olarak açıktır. Elle aç/kapat için otomatik kontrol seçeneğini kapatın. Dahili dizüstü ekranı da fiziksel ekran sayılır.
 6. Çarpı, uygulamanın arka planda kaldığını açıklayıp pencereyi gizler. Geri açmak için saat yanındaki simgeye çift tıklayın. Tam çıkış: simgeye sağ tık → **Tamamen çık**.
 
-Uygulama Windows açılışına otomatik eklenmez; her oturumda bir kez çalıştırın. Çıkış yapmak VDD'nin o anki durumunu değiştirmez. Windows simgeyi gizli simgeler menüsüne taşıyabilir.
+**Başlangıç ayarları** düğmesinden Windows oturumu açıldığında otomatik başlatmayı ve beklenmedik kapanma sonrası yeniden başlatmayı ayrı ayrı seçin; **Ayarları kaydet** ile uygulayın. İlk kullanımda bu seçenekler kendiliğinden kurulmaz. Kaydedildiğinde uygulama dosyaları `%ProgramData%\VirtualDisplayManager` altına alınır ve geçerli kullanıcı için görevler oluşturulur. Giriş ekranından önce çalışmaz. Ayarları kapatmak mevcut uygulamayı veya VDD durumunu değiştirmez. Windows simgeyi gizli simgeler menüsüne taşıyabilir.
 
 ### Bu ihtiyaç neden oluşuyor?
 [AnyDesk'in “Waiting for image” açıklaması](https://support.anydesk.com/docs/waiting-for-image), fiziksel monitör yokken ekran sürücüsünün devre dışı kalmasının görüntü alınamamasına yol açabildiğini anlatır. [RealVNC'nin Windows görüntü sorunları kılavuzu](https://help.realvnc.com/hc/en-us/articles/360004012211-Display-issues-when-connecting-to-RealVNC-Connect-for-Windows) da monitörsüz cihazlarda benzer sorunları ve kendi sanal ekran çözümünü açıklar. Bunlar kullanım ihtiyacını doğrular; bu projenin o ürünlerle test edilmiş entegrasyonu olduğu anlamına gelmez.
@@ -78,7 +78,7 @@ Her uzak bağlantı aracı aynı davranmaz: [güncel TeamViewer sürümleri Wind
 
 **Dizüstü bilgisayarın kendi ekranı sayılır mı?** Evet. Windows'un aktif fiziksel ekran olarak bildirdiği dahili panel de sayılır; böyle bir panel varken otomatik mod VDD'yi kapatır.
 
-**Windows açılınca otomatik başlar mı?** Bu sürüm başlangıca görev eklemez. Her oturumda CMD'yi bir kez başlatın; pencereyi kapatsanız da saat yanındaki simgede izleme sürer.
+**Windows açılınca otomatik başlar mı?** Başlangıç ayarlarından etkinleştirirseniz oturum açıldığında başlar. Beklenmedik kapanma sonrası yeniden başlatma ayrı bir seçenektir. “Tamamen çık” yeniden başlatmayı duraklatır; otomatik başlatma açıksa sonraki oturum açılışında devam eder.
 
 **Kaynak kodu bilmem veya derlemem gerekir mi?** Hayır. Üstteki hazır CMD'yi indirip çalıştırmanız yeterlidir.
 ### Cihaz değişiklikleri ve gizlilik
@@ -158,14 +158,14 @@ The repository contains rebuildable PowerShell application sources. The actual d
 - Reusable background runspace for hardware queries and a CMD launcher without a persistent Terminal window.
 
 ### Download and use
-1. Download **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.2-preview.1/Virtual-Display-Manager-Portable.cmd)**. Requires Windows 10/11 x64, Windows PowerShell 5.1 and .NET Framework.
+1. Download **[Virtual-Display-Manager-Portable.cmd](https://github.com/sinanback/virtual-display-manager/releases/download/v2.0.3-preview.1/Virtual-Display-Manager-Portable.cmd)**. Requires Windows 10/11 x64, Windows PowerShell 5.1 and .NET Framework.
 2. Save the CMD in a permanent folder. No separate PS1 or companion file is needed.
 3. Double-click **Virtual-Display-Manager-Portable.cmd**.
 4. Approve the administrator prompt. If VDD is not installed, choose **Install driver**. The offline installation components are included in the CMD.
 5. Automatic control is on by default. Turn it off to enable manual switching. Built-in laptop panels count as physical displays.
 6. Close the window to read the background-monitoring explanation and hide it to the tray. Double-click the tray icon to reopen it. Right-click → **Exit application** to stop monitoring completely.
 
-The application does not configure Windows autostart. Launch it once per session. Exiting leaves VDD in its current state. Windows may place the tray icon in the hidden-icons menu.
+Use **Startup settings** to independently choose Windows sign-in startup and recovery after unexpected exits, then choose **Save settings**. These options are not installed automatically on first launch. Saving installs application files under `%ProgramData%\VirtualDisplayManager` and registers tasks for the current user. It does not run before sign-in. Disabling a setting does not close the current application or directly change VDD. Windows may place the tray icon in the hidden-icons menu.
 
 ### Why this can matter
 [AnyDesk documents monitor-related “Waiting for image” symptoms](https://support.anydesk.com/docs/waiting-for-image), and [RealVNC documents display issues on headless Windows devices](https://help.realvnc.com/hc/en-us/articles/360004012211-Display-issues-when-connecting-to-RealVNC-Connect-for-Windows). These sources support the use case; they do not certify this project's compatibility with those products.
@@ -176,7 +176,7 @@ Some tools already solve this themselves: [current TeamViewer versions include W
 
 **Does a laptop's built-in screen count?** Yes. An internal panel reported by Windows as an active physical display counts; automatic mode disables VDD while it is active.
 
-**Does it start with Windows?** This version does not register a startup task. Launch the CMD once per session. Closing the window hides it to the tray while monitoring continues.
+**Does it start with Windows?** Enable sign-in startup in Startup settings. Recovery after unexpected exits is a separate option. Exit application pauses recovery; if sign-in startup is enabled, it resumes at the next sign-in.
 
 **Do I need to build the source?** No. Download and run the ready-to-use CMD linked above.
 ### System changes and privacy

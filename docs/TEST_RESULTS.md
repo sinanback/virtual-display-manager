@@ -34,3 +34,9 @@ Actual physical cable manipulation and automatic device disable/enable were not 
 - UI/background-policy/lifecycle and portable bootstrap checks: passed. First window render approximately 1.5 seconds; initial query approximately 0.5 seconds.
 - The existing VDD was enabled during recovery and Windows reported OK / CM_PROB_NONE. The current application was restarted with automatic monitoring; subsequent live snapshots reported VDD enabled, zero physical monitors and no detection error.
 - Actual physical cable manipulation and automatic hardware enable/disable cycles were not performed in this run. The test suite simulates those mutations.
+## Startup settings verification · 2026-11-14
+
+- Turkish/English settings UI, overview-button navigation, asynchronous saved-state loading, Save action wiring and existing UI/policy/lifecycle checks: passed.
+- Live task integration: both options disabled, sign-in startup enabled independently, then the original enabled/enabled configuration restored. No VDD mutation is performed by these settings actions.
+- Real unexpected process termination was recovered by the scheduled periodic check. Separate isolated wrapper checks confirmed that normal Exit application pauses recovery, Resume clears the pause, and unexpected failure stays recoverable.
+- Portable CMD bootstrap and lazy driver ZIP offset: passed. Sign-in trigger registration was inspected; a full sign-out/reboot cycle was not performed.

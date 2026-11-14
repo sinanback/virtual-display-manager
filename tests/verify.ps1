@@ -65,6 +65,18 @@ $timer.Stop()
 Assert (-not $script:job) 'Background query completes within timeout'
 Assert ($null -ne $script:snapshot) ('Read-only hardware snapshot: '+$script:lastError)
 Assert ($script:workerReady) 'Background worker initialized'
+$tabs.SelectedTab=$overview;[Windows.Forms.Application]::DoEvents();$startupButton.PerformClick();[Windows.Forms.Application]::DoEvents()
+$settingsWatch=[Diagnostics.Stopwatch]::StartNew()
+while($script:job -and $settingsWatch.Elapsed.TotalSeconds -lt 30){if($script:job.Handle.IsCompleted){Complete-Work}else{Start-Sleep -Milliseconds 30}}
+Assert ($script:startupLoaded -and $startupSave.Enabled) 'Startup settings read asynchronously and enable Save'
+Assert ($tabs.SelectedTab -eq $settingsTab) 'Overview button opens startup settings'
+foreach($lang in @('tr','en')){
+    $script:language=$lang;Apply-Language
+    Assert ($startupButton.Text -eq (T StartupSettings)) ('Startup button translated '+$lang)
+    $bmp=New-Object Drawing.Bitmap($form.Width,$form.Height)
+    $form.DrawToBitmap($bmp,(New-Object Drawing.Rectangle(0,0,$form.Width,$form.Height)));$bmp.Save('__ARTIFACTS__\startup-'+$lang+'.png');$bmp.Dispose()
+}
+$script:language='tr';Apply-Language
 Write-Output ('UI first shown: '+$uiTime+' ms; first read-only hardware query: '+$queryWatch.ElapsedMilliseconds+' ms; physical displays: '+$script:snapshot.Physical)
 $tabs.SelectedTab=$overview;[Windows.Forms.Application]::DoEvents()
 $bmp=New-Object Drawing.Bitmap($form.Width,$form.Height)
@@ -73,6 +85,10 @@ $form.DrawToBitmap($bmp,(New-Object Drawing.Rectangle(0,0,$form.Width,$form.Heig
 # Start-Work is replaced only inside this generated test process.
 $script:capturedActions=@()
 function Start-Work {param([string]$Action,[bool]$Automatic);$script:capturedActions+=($Action+':'+$Automatic)}
+$tabs.SelectedTab=$settingsTab;$script:capturedActions=@()
+$startupSave.PerformClick()
+Assert (($script:capturedActions -join ',') -eq 'StartupSave:False') 'Save button queues startup configuration without a hardware toggle'
+$script:capturedActions=@()
 $script:fakeSnapshot=[pscustomobject]@{Device=[pscustomobject]@{Id='ROOT\TEST';Name='Test VDD';Enabled=$true;Disabled=$false;Code=0};Physical=1;DetectionError=$null;CheckedAt=[datetime]::Now}
 $script:fakeResult=[pscustomobject]@{Snapshot=$script:fakeSnapshot;Detail='';Reboot=$false;Verified=$true;Skipped=$false}
 function Complete-FakeQuery {

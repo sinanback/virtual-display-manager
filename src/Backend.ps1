@@ -258,6 +258,10 @@ function Install-OfflineDriver {
 }
 function Invoke-Backend {
     param([string]$Action,[bool]$Automatic,$Context)
+    if($Action -in @('StartupQuery','StartupSave')) {
+        $startup=if($Action -eq 'StartupSave'){Set-StartupConfiguration $Context}else{Get-StartupConfiguration}
+        return [pscustomobject]@{Snapshot=(Get-DeviceSnapshot);Startup=$startup;Detail='';Reboot=$false;Verified=$true;Skipped=$false}
+    }
     $detail=''; $reboot=$false; $skipped=$false
     if ($Action -eq 'Install') {
         $before=Get-DeviceSnapshot

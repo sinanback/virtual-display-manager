@@ -128,8 +128,8 @@ try {
 }finally{$cipher.Dispose()}
 $header.Controls.AddRange(@($title,$subtitle,$languageButton,$credit)); $form.Controls.Add($header)
 $tabs=New-Object Windows.Forms.TabControl; $tabs.SetBounds(22,130,836,522); $tabs.Padding=New-Object Drawing.Point(18,8)
-$overview=New-Object Windows.Forms.TabPage; $activityTab=New-Object Windows.Forms.TabPage; $guideTab=New-Object Windows.Forms.TabPage
-foreach($page in @($overview,$activityTab,$guideTab)){$page.BackColor=[Drawing.Color]::White;$tabs.TabPages.Add($page)}
+$overview=New-Object Windows.Forms.TabPage; $activityTab=New-Object Windows.Forms.TabPage; $guideTab=New-Object Windows.Forms.TabPage; $settingsTab=New-Object Windows.Forms.TabPage
+foreach($page in @($overview,$activityTab,$guideTab,$settingsTab)){$page.BackColor=[Drawing.Color]::White;$tabs.TabPages.Add($page)}
 $status=New-Label '' 24 22 770 36; $status.Font=New-Object Drawing.Font('Segoe UI Semibold',18)
 $physical=New-Label '' 26 67 740 27; $physical.Font=New-Object Drawing.Font('Segoe UI Semibold',11)
 $deviceDetail=New-Label '' 26 101 764 70; $deviceDetail.ForeColor=[Drawing.Color]::DimGray; $deviceDetail.AutoEllipsis=$true
@@ -137,8 +137,17 @@ $install=New-Button 26 185 374; $remove=New-Button 420 185 374
 $enable=New-Button 26 243 374; $disable=New-Button 420 243 374
 $autoCheck=New-Object Windows.Forms.CheckBox; $autoCheck.SetBounds(26,307,768,30); $autoCheck.Checked=$true
 $modeHint=New-Label '' 27 343 768 46; $modeHint.ForeColor=[Drawing.Color]::DimGray
-$refresh=New-Button 258 403 310 42
-$overview.Controls.AddRange(@($status,$physical,$deviceDetail,$install,$remove,$enable,$disable,$autoCheck,$modeHint,$refresh))
+$refresh=New-Button 26 403 374 42; $startupButton=New-Button 420 403 374 42
+$overview.Controls.AddRange(@($status,$physical,$deviceDetail,$install,$remove,$enable,$disable,$autoCheck,$modeHint,$refresh,$startupButton))
+$startupTitle=New-Label '' 24 22 768 40; $startupTitle.Font=New-Object Drawing.Font('Segoe UI Semibold',17)
+$startupHint=New-Label '' 26 72 760 70; $startupHint.ForeColor=[Drawing.Color]::DimGray
+$startCheck=New-Object Windows.Forms.CheckBox; $startCheck.SetBounds(26,160,760,34); $startCheck.Enabled=$false
+$recoveryCheck=New-Object Windows.Forms.CheckBox; $recoveryCheck.SetBounds(26,210,760,34); $recoveryCheck.Enabled=$false
+$startupNote=New-Label '' 26 265 760 78; $startupNote.ForeColor=[Drawing.Color]::DimGray
+$startupStatus=New-Label '' 26 352 760 38
+$startupRead=New-Button 26 406 374 42; $startupSave=New-Button 420 406 374 42; $startupSave.Enabled=$false
+$settingsTab.Controls.AddRange(@($startupTitle,$startupHint,$startCheck,$recoveryCheck,$startupNote,$startupStatus,$startupRead,$startupSave))
+$script:startupLoaded=$false; $script:startupReadError=$false
 $logHint=New-Label '' 18 16 786 43; $logHint.ForeColor=[Drawing.Color]::DimGray
 $script:activityList=New-Object Windows.Forms.ListView; $activityList.SetBounds(18,66,786,264); $activityList.View='Details'; $activityList.FullRowSelect=$true; $activityList.GridLines=$false; $activityList.HideSelection=$false
 foreach($width in @(155,90,180,600)){ $activityList.Columns.Add('', $width)|Out-Null }
@@ -148,7 +157,7 @@ $activityTab.Controls.AddRange(@($logHint,$activityList,$activityDetail,$export,
 $guide=New-Object Windows.Forms.TextBox; $guide.SetBounds(18,16,786,445); $guide.Multiline=$true; $guide.ScrollBars='Vertical'; $guide.ReadOnly=$true; $guide.BorderStyle='None'; $guide.BackColor=[Drawing.Color]::White; $guide.Font=New-Object Drawing.Font('Segoe UI',10.5)
 $guideTab.Controls.Add($guide)
 $footer=New-Label '' 27 665 720 24; $footer.ForeColor=[Drawing.Color]::DimGray
-$version=New-Label 'v2.0.2' 773 665 80 24; $version.TextAlign='MiddleRight'; $version.ForeColor=[Drawing.Color]::DimGray
+$version=New-Label 'v2.0.3' 773 665 80 24; $version.TextAlign='MiddleRight'; $version.ForeColor=[Drawing.Color]::DimGray
 $form.Controls.AddRange(@($tabs,$footer,$version))
 $tray=New-Object Windows.Forms.NotifyIcon; $tray.Icon=$script:brandIcon; $tray.Visible=$true
 $menu=New-Object Windows.Forms.ContextMenuStrip
@@ -167,6 +176,9 @@ function Update-StateView {
     $enable.Enabled=(-not $busy -and -not $autoCheck.Checked -and $d -and -not $d.Enabled)
     $disable.Enabled=(-not $busy -and -not $autoCheck.Checked -and $d -and $d.Enabled)
     $autoCheck.Enabled=-not $busy; $autoMenu.Enabled=-not $busy; $refresh.Enabled=-not $busy; $refreshMenu.Enabled=-not $busy
+    $startupButton.Enabled=-not $busy; $startupRead.Enabled=-not $busy
+    $startupSave.Enabled=($script:startupLoaded -and -not $busy)
+    $startCheck.Enabled=($script:startupLoaded -and -not $busy); $recoveryCheck.Enabled=$startCheck.Enabled
     $modeHint.Text=if($autoCheck.Checked){T AutoHint}else{T ManualHint}
     $errorPresent=($script:lastError -or ($s -and $s.DetectionError) -or $key -eq 'Fault')
     $iconKey=if($errorPresent){'Warning'}elseif($key -eq 'On'){'On'}else{'Off'}
@@ -182,6 +194,10 @@ function Apply-Language {
     try {
         $form.Text=T App; $title.Text=T App; $subtitle.Text=T Subtitle; $languageButton.Text=T Language; $credit.Text=(T Editor)+' : '+$script:creditName
         $overview.Text=T Dashboard; $activityTab.Text=T Activity; $guideTab.Text=T Guide
+        $settingsTab.Text=T StartupSettings; $startupButton.Text=T StartupSettings; $startupTitle.Text=T StartupSettings
+        $startupHint.Text=T StartupHint; $startCheck.Text=T StartupLogon; $recoveryCheck.Text=T StartupRecovery
+        $startupNote.Text=T StartupNote; $startupRead.Text=T Refresh; $startupSave.Text=T SaveStartup
+        $startupStatus.Text=if($script:startupReadError){T StartupFailed}elseif($script:startupLoaded){T StartupLoaded}else{T StartupUnread}
         $install.Text=T Install; $remove.Text=T Remove; $enable.Text=T Enable; $disable.Text=T Disable; $refresh.Text=T Refresh; $autoCheck.Text=T Auto
         $logHint.Text=T LogHint; $export.Text=T Export; $openLogs.Text=T OpenLogs
         $keys=@('Time','Level','Operation','Detail'); for($i=0;$i -lt 4;$i++){$activityList.Columns[$i].Text=T $keys[$i]}
@@ -202,7 +218,7 @@ function Start-Work([string]$Action='Query',[bool]$Automatic=$false) {
         }
         $ps=[Management.Automation.PowerShell]::Create(); $ps.Runspace=$script:worker
         if(-not $script:workerReady){$ps.AddScript($script:BackendCode)|Out-Null}
-        $ps.AddScript('param($action,$automatic,$context) Invoke-Backend $action $automatic $context').AddArgument($Action).AddArgument($Automatic).AddArgument(@{Embedded=$env:VDD_EMBEDDED_CMD;Offset=$env:VDD_PACKAGE_OFFSET;Package=$env:VDD_EMBEDDED_PACKAGE})|Out-Null
+        $ps.AddScript('param($action,$automatic,$context) Invoke-Backend $action $automatic $context').AddArgument($Action).AddArgument($Automatic).AddArgument(@{Embedded=$env:VDD_EMBEDDED_CMD;Offset=$env:VDD_PACKAGE_OFFSET;Package=$env:VDD_EMBEDDED_PACKAGE;StartEnabled=$startCheck.Checked;RecoveryEnabled=$recoveryCheck.Checked})|Out-Null
         $script:jobAction=$Action; $script:jobAutomatic=$Automatic
         $script:job=[pscustomobject]@{PowerShell=$ps; Handle=$ps.BeginInvoke()}
         if($Action -ne 'Query'){Add-Activity Requested $Action '' Info $(if($Automatic){'AutoReason'}else{'ManualReason'})}
@@ -223,6 +239,10 @@ function Complete-Work {
         $result=$results | Select-Object -Last 1
         if(-not $result -or -not $result.Snapshot){throw 'The worker returned no device snapshot.'}
         $script:workerReady=$true; $script:snapshot=$result.Snapshot; $script:lastError=$null
+        if($result.Startup){
+            $startCheck.Checked=[bool]$result.Startup.StartEnabled; $recoveryCheck.Checked=[bool]$result.Startup.RecoveryEnabled
+            $script:startupLoaded=$true; $script:startupReadError=$false; $startupStatus.Text=if($action -eq 'StartupSave'){T StartupSaved}else{T StartupLoaded}
+        }
         if(-not $script:icons.Count){
             $script:icons.On=[VddHardware]::StateIcon($script:brandIcon,[Drawing.Color]::ForestGreen.ToArgb()); $script:icons.Off=[VddHardware]::StateIcon($script:brandIcon,[Drawing.Color]::Gray.ToArgb()); $script:icons.Warning=[VddHardware]::StateIcon($script:brandIcon,[Drawing.Color]::DarkOrange.ToArgb())
         }
@@ -242,6 +262,7 @@ function Complete-Work {
         if($message -match 'OFFLINE_PACKAGE_MISSING'){$message=T OfflineMissing}
         if($message -ne $script:lastError){Add-Activity Failure $action $message Error}
         $script:lastError=$message; $script:stable=0; $script:pendingTarget='None'; $script:retryAfter=(Get-Date).AddSeconds(15)
+        if($action -in @('StartupQuery','StartupSave')){$script:startupReadError=$true;$startupStatus.Text=T StartupFailed;if($action -eq 'StartupQuery'){$script:startupLoaded=$false}}
         if($action -ne 'Query' -and -not $automatic){[Windows.Forms.MessageBox]::Show((T Failure)+"`n`n"+$message,(T App),'OK','Error')|Out-Null}
     } finally { $job.PowerShell.Dispose(); $script:job=$null; $script:nextPoll=(Get-Date).AddSeconds(3) }
     Update-StateView
@@ -276,6 +297,10 @@ function Request-Action([string]$Action) {
 $languageButton.Add_Click({$script:language=if($script:language -eq 'tr'){'en'}else{'tr'};Save-Settings;Apply-Language;Add-Activity LangChanged '' $script:language})
 $install.Add_Click({Request-Action Install});$remove.Add_Click({Request-Action Remove});$enable.Add_Click({Request-Action Enable});$disable.Add_Click({Request-Action Disable})
 $refresh.Add_Click({$script:nextPoll=[datetime]::MinValue});$refreshMenu.Add_Click({$script:nextPoll=[datetime]::MinValue})
+$startupButton.Add_Click({$tabs.SelectedTab=$settingsTab})
+$tabs.Add_SelectedIndexChanged({if($tabs.SelectedTab -eq $settingsTab){Request-Action StartupQuery}})
+$startupRead.Add_Click({Request-Action StartupQuery})
+$startupSave.Add_Click({Request-Action StartupSave})
 $autoCheck.Add_CheckedChanged({
     if($script:updating){return}
     $autoMenu.Checked=$autoCheck.Checked; $script:stable=0;$script:pendingTarget='None';$script:nextPoll=[datetime]::MinValue

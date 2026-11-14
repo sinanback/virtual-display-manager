@@ -1,5 +1,10 @@
 ﻿$script:Strings = @{
     tr = @{
+        StartupSettings='Başlangıç ayarları'; StartupHint='Windows oturumu açıldığında başlatmayı ve beklenmedik kapanma sonrası yeniden başlatmayı ayrı ayrı yönetin. Değişiklikler Kaydet ile uygulanır.'
+        StartupLogon='Windows oturumu açıldığında otomatik başlat'; StartupRecovery='Beklenmedik kapanmada yeniden başlat (yaklaşık 1 dakika)'
+        StartupNote='Bu ayarlar mevcut uygulamayı kapatmaz ve VDD durumunu doğrudan değiştirmez. “Tamamen çık” seçimi yeniden başlatmayı bir sonraki oturum açılışına kadar duraklatır. Başlatma, Windows giriş ekranından sonra gerçekleşir.'
+        SaveStartup='Ayarları kaydet'; StartupUnread='Ayarlar henüz okunmadı.'; StartupLoaded='Kayıtlı Windows ayarları okundu.'; StartupSaved='Ayarlar kaydedildi ve doğrulandı.'; StartupFailed='Ayarlar uygulanamadı veya okunamadı. Cihaz işlemleri bölümüne bakın.'
+        StartupQuery='Başlangıç ayarlarını oku'; StartupSave='Başlangıç ayarlarını kaydet'
         App='Virtual Display Manager'; Subtitle='Sanal ekran ve fiziksel monitör yönetimi'; Language='English'; Editor='Editör'; Dashboard='Genel bakış'; Activity='Cihaz işlemleri'; Guide='Kullanıcı kılavuzu'
         Checking='Cihaz durumu okunuyor…'; On='SANAL EKRAN AÇIK'; Off='SANAL EKRAN KAPALI'; Missing='SÜRÜCÜ KURULU DEĞİL'; Fault='SÜRÜCÜ DİKKAT GEREKTİRİYOR'; Unknown='DURUM DOĞRULANAMADI'
         Physical='Fiziksel ekran'; Device='Aygıt'; DeviceId='Aygıt kimliği'; ErrorCode='Windows durum kodu'; Updated='Son kontrol'; NoDevice='Sanal ekran sürücüsü bulunamadı.'
@@ -41,10 +46,15 @@ Yeşil: VDD açık. Gri: kapalı veya kurulu değil. Turuncu: aygıt/algılama h
 Sağ üstteki dil düğmesi Türkçe ve İngilizce arasında geçiş yapar; seçim sonraki açılış için saklanır. Cihaz işlemleri sekmesi, uygulamanın başlattığı işlemleri ve algılanan değişimleri gösterir. Kayıtlar yalnızca bu bilgisayarda %LOCALAPPDATA%\VDD-Yonetici altında tutulur. Uygulama telemetri göndermez. JSONL dışa aktarımında zamanlar UTC, ayrıntılar ve aygıt kimlikleri bulunabilir; paylaşmadan önce inceleyin.
 
 8. Sorun giderme
-Durumu yenile düğmesini kullanın. Uyarı sürerse Cihaz işlemleri sekmesindeki teknik ayrıntıyı ve Windows Aygıt Yöneticisi durumunu kontrol edin. Uygulama bu sürümde Windows açılışına otomatik eklenmez; her oturumda bir kez başlatın. Çıkış yapmak VDD durumunu değiştirmez.
+Durumu yenile düğmesini kullanın. Uyarı sürerse Cihaz işlemleri sekmesindeki teknik ayrıntıyı ve Windows Aygıt Yöneticisi durumunu kontrol edin. Başlangıç ayarları düğmesinden Windows oturumunda otomatik başlatmayı ve beklenmedik kapanma sonrası yeniden başlatmayı açıp kapatabilirsiniz. Çıkış yapmak VDD durumunu değiştirmez.
 '@
     }
     en = @{
+        StartupSettings='Startup settings'; StartupHint='Manage sign-in startup and recovery after unexpected exits separately. Changes take effect when you choose Save settings.'
+        StartupLogon='Start automatically when I sign in to Windows'; StartupRecovery='Restart after an unexpected exit (about 1 minute)'
+        StartupNote='These settings do not close the current application or directly change VDD. Exit application pauses recovery until the next sign-in. Startup happens after the Windows sign-in screen.'
+        SaveStartup='Save settings'; StartupUnread='Settings have not been read yet.'; StartupLoaded='Saved Windows settings loaded.'; StartupSaved='Settings saved and verified.'; StartupFailed='Settings could not be read or applied. See Device activity.'
+        StartupQuery='Read startup settings'; StartupSave='Save startup settings'
         App='Virtual Display Manager'; Subtitle='Virtual display and physical monitor management'; Language='Türkçe'; Editor='Editor'; Dashboard='Overview'; Activity='Device activity'; Guide='User guide'
         Checking='Reading device status…'; On='VIRTUAL DISPLAY ENABLED'; Off='VIRTUAL DISPLAY DISABLED'; Missing='DRIVER NOT INSTALLED'; Fault='DRIVER NEEDS ATTENTION'; Unknown='STATUS UNAVAILABLE'
         Physical='Physical displays'; Device='Device'; DeviceId='Device instance ID'; ErrorCode='Windows status code'; Updated='Last checked'; NoDevice='Virtual display driver not found.'
@@ -86,7 +96,7 @@ Green: VDD enabled. Gray: disabled or not installed. Orange: device or detection
 The language button in the upper-right switches between Turkish and English; the choice is saved for the next launch. Device activity lists application actions and observed changes. Logs stay on this computer under %LOCALAPPDATA%\VDD-Yonetici. The application sends no telemetry. JSONL exports contain UTC timestamps and may include technical details and device identifiers; review them before sharing.
 
 8. Troubleshooting
-Choose Refresh status. If a warning remains, inspect the technical details in Device activity and the device status in Windows Device Manager. This version does not register itself to start with Windows; launch it once per session. Exiting does not change the current VDD state.
+Choose Refresh status. If a warning remains, inspect the technical details in Device activity and the device status in Windows Device Manager. Use Startup settings to configure Windows sign-in startup and recovery after unexpected exits. Exiting does not change the current VDD state.
 '@
     }
 }

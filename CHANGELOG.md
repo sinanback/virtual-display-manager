@@ -1,8 +1,10 @@
 # Changelog
 
-## 2.0.2
+## 2.0.3
 
 ### Türkçe
+
+- Başlangıç ayarları: Windows oturumunda otomatik başlatma ve beklenmedik kapanma sonrası yeniden başlatma için bağımsız seçenekler, kayıtlı durum okuma ve doğrulanan kaydetme.
 
 - Ekran bağlantıları, o anda mevcut monitörlerin tam PnP aygıt kimlikleriyle doğrulanır; önbellekte kalan DisplayPort/HDMI yolları fiziksel monitör sayılmaz.
 
@@ -19,6 +21,8 @@
 - EXE gerektirmeyen, konsol oluşturmayan CMD başlatıcıları; kaynak derleme betiği, testler ve SHA-256 listesi.
 
 ### English
+
+- Startup settings with independent Windows sign-in startup and unexpected-exit recovery options, saved-state loading and verified saves.
 
 - Display paths are matched to exact currently present monitor instance IDs; cached DisplayPort/HDMI paths do not count as physical monitors.
 
